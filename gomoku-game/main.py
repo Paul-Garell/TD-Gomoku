@@ -49,7 +49,9 @@ def check_flat(state, i, j):
 		return True 
 	return False
 
-
+'''
+find length of current diag with equal values and if over 4 return true 
+'''
 def check_diag(state, i, j):
 	li = i
 	lj = j
@@ -78,6 +80,7 @@ def check_diag(state, i, j):
 	if ui - li >= 5: 
 		return True
 	return False
+
 '''
 input:
 	state: board state (15x15 numpy array)
