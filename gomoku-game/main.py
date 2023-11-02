@@ -4,21 +4,52 @@
 import numpy as np
 
 turnRef = {1:"White", -1:"Black"}
+moves = []
+# movenum = 0
+
+def fileToList(textFile):
+	f = open(textFile, "r")
+	L = f.readline()
+	while L != '' and L != '\n':
+		x, y = L.split(',') 
+		x = int(x.strip())
+		y = int(y.strip())
+		moves.append((x,y))
+		L = f.readline()
+	return moves
+
+'''
+return x,y coordinates
+'''
+def getInput(cli, movenum):
+	if cli:
+		coords = input("coords for move, x, y")
+		x, y = coords.split(',') 
+		x = int(x.strip())
+		y = int(y.strip())
+		return x, y
+	else:
+		# L = getFrom list
+		return moves[movenum]
+
+
 
 '''
 input:
 	state: board state (15x15 numpy array)
 	turn: next move {-1, 1}
+	inputs: True if CLI interface, false for text file interface
 output:
 	state: an updated board state
 '''
-def make_move(state, turn):
+def make_move(state, turn, inputs, movenum):
+	inputs
 	validCords = False
 	while not validCords:
-		coords = input("coords for move, x, y")
-		x, y = coords.split(',') 
-		x = int(x.strip())
-		y = int(y.strip())
+		x,y = getInput(inputs, movenum)
+		# x, y = coords.split(',') 
+		# x = int(x.strip())
+		# y = int(y.strip())
 
 		if state[x][y] == 0:
 			state[x][y] = turn
@@ -95,8 +126,8 @@ def check_win(state, last):
 	vert = check_flat(state, i, j)
 	horiz = check_flat(state.T, j, i)
 	
-	print("hor" + str(horiz))
-	print("vert" + str(vert))
+	# print("hor" + str(horiz))
+	# print("vert" + str(vert))
 	
 	#i think this should work??
 	diagl = check_diag(state, i, j)
@@ -104,34 +135,39 @@ def check_win(state, last):
 
 	diag = diagl or diagr
 
-	print("diag "+str(diag))
+	# print("diag "+str(diag))
 	return (horiz or vert) or diag
 	
 
-def play_game(state):
+def play_game(state, inputs):
 	#check if winner
 	#call next turn
 	gameIsRunning = True
 	curMove = -1 #start turn is always white (flips in loop)
-	
+	movenum = 0
 
 	while gameIsRunning:
+		print("\n MOVE NUMBER: " + str(movenum))
 		curMove *= -1 #switch turns
-		state, move = make_move(state, curMove)
+		state, move = make_move(state, curMove, inputs, movenum)
+		movenum += 1
 		print(state)
 		gameIsRunning = not check_win(state,move)
 		if np.sum(np.sum(np.abs(state[:, :]))) == 225:
 			gameIsRunning = False
-	
 		
 	if check_win(state, move):
-		print(str(curMove) + " won!")
+		print(str(turnRef[curMove]) + " won!")
 	else:
 		print("board full, no winner.")
 
 	
 
 if __name__ == "__main__":
+	cli = False
+	textFile = "test/input.txt"
+	if not cli:
+		fileToList(textFile)
 	back = np.zeros((15, 15))
-	play_game(back)
+	play_game(back, cli)
 
