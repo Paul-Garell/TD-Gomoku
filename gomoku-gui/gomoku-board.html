@@ -26,21 +26,48 @@
   }
 
   body {
-    display: flex;
-    justify-content: center;
-    align-items: center;
+    background-color: rgb(167, 213, 236);
     height: 100vh;
     /* Ensure full height */
     margin: 0;
     /* Remove default margin */
   }
+
+  .container {
+    display: flex;
+    width: 100%;
+    height: 100%;
+  }
+
+  .half {
+    flex: 1;
+  }
+
+  .half h1 {
+    text-align: center;
+  }
+
+  .half h3 {
+    text-align: center;
+  }
+
+  .game {
+    flex: 1;
+  }
 </style>
 
 <body>
-  <input type="text" id="testInput">
-  <button type="button" onclick="submit()">Submit</button>
-
-  <svg height="850" width="850" id="board"></svg>
+  <div class="container">
+    <div class="half">
+      <h1>Welcome to TD-Gomoku!</h1>
+      <h3>By Paul Garell and Lauren Cali</h3>
+      <input type="text" id="testInput">
+      <button type="button" onclick="submit()">Submit</button>
+    </div>
+    <div class="game">
+      <svg height="850" width="850" id="board"></svg>
+    </div>
+  </div>
   <script>
     var piece = -1;
 
@@ -60,7 +87,7 @@
 
 
     //Used as svg margin
-    const margin = { "top": 10, "bottom": 10, "left": 10, "right": 10 };
+    const margin = { "top": 20, "bottom": 20, "left": 20, "right": 20 };
     //Used as margin for board border
     const bmargin = { "top": 30, "bottom": 30, "left": 30, "right": 30 };
 
@@ -100,7 +127,7 @@
       .attr("transform", `translate(0,${margin.top + bmargin.top})`)
       .call(bottomAxis)
       .selectAll(".tick text")
-      .attr("transform", `translate(0,${boardHeight - bmargin.top - bmargin.bottom + 5})`);
+      .attr("transform", `translate(0,${boardHeight - bmargin.top - bmargin.bottom + 30})`);
 
     svg.append("g")
       .attr("class", "vertGrid")
@@ -126,7 +153,7 @@
       .attr("transform", `translate(${margin.left + bmargin.left},0)`)
       .call(leftAxis)
       .selectAll(".tick text")
-      .attr("transform", `translate(-5,0)`);
+      .attr("transform", `translate(-30,0)`);
 
 
     svg.append("g")
