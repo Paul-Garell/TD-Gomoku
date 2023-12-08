@@ -167,6 +167,7 @@ if __name__ == "__main__":
 	cli = False
 	textFile = "test/input.txt"
 	if not cli:
+		#check if text file is valid here?
 		fileToList(textFile)
 	back = np.zeros((15, 15))
 	play_game(back, cli)
