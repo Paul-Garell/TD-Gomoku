@@ -1,0 +1,313 @@
+<html>
+<script src="https://d3js.org/d3.v7.min.js"></script>
+
+<style>
+  .vertGrid .domain {
+    display: none;
+  }
+
+  .vertGrid line {
+    stroke: "black";
+    stroke-width: 2;
+  }
+
+  .horzGrid .domain {
+    display: none;
+  }
+
+  .horzGrid line {
+    stroke: "black";
+    stroke-width: 2;
+  }
+
+  .tick text {
+    font-weight: bold;
+    font-size: 16px;
+  }
+
+  body {
+    background-color: rgb(167, 213, 236);
+    height: 100vh;
+    /* Ensure full height */
+    margin: 0;
+    /* Remove default margin */
+  }
+
+  .container {
+    display: flex;
+    width: 100%;
+    height: 100%;
+  }
+
+  .half {
+    flex: 1;
+  }
+
+  .half h1 {
+    text-align: center;
+  }
+
+  .half h2 {
+    text-align: center;
+  }
+
+  .half h3 {
+    text-align: center;
+  }
+
+  .game {
+    flex: 1;
+  }
+
+  .instructions {
+    text-align: left;
+    font-size: 22px;
+    margin-right: 20px;
+    margin-left: 20px;
+    line-height: 1.5;
+  }
+</style>
+
+<body>
+  <div class="container">
+    <div class="half">
+      <h1>Welcome to TD-Gomoku!</h1>
+      <h3>By Paul Garell and Lauren Cali</h3>
+      <br>
+      <h2>How to Play</h2>
+      <div class="instructions">
+        <p> The black stone plays first. Players alternate turns placing their pieces in a strategic manner at grid
+          intersections. To win the game, a player must successfully get at least five of their pieces in a row unbroken
+          vertically, horizontally, or diagonally. If the board fills and no player has achieved five consecutive
+          pieces, the game ends in a draw.
+        </p>
+
+        <p>To begin, click on the intersection where you would like to place your piece. You must wait for the algorithm
+          to make its move before you take your next turn. </p>
+      </div>
+      <input type="text" id="testInput">
+      <button type="button" onclick="submit()">Submit</button>
+    </div>
+    <div class="game">
+      <svg height="850" width="850" id="board"></svg>
+    </div>
+  </div>
+  <script>
+    var piece = -1;
+
+    var pieceMatrix = [];
+    let rows = 15;
+    let cols = 15;
+
+    for (var i = 0; i < rows; i++) {
+      var row = [];
+
+      for (var j = 0; j < cols; j++) {
+        row.push(0); // No pieces at start
+      }
+      pieceMatrix.push(row);
+    }
+
+    //START OF BOARD SET-UP
+
+    //Used as svg margin
+    const margin = { "top": 20, "bottom": 20, "left": 20, "right": 20 };
+    //Used as margin for board border
+    const bmargin = { "top": 30, "bottom": 30, "left": 30, "right": 30 };
+
+    const svg = d3.select("svg#board");
+    const height = svg.attr("height");
+    const width = svg.attr("width");
+    const boardWidth = width - margin.left - margin.right;
+    const boardHeight = height - margin.top - margin.bottom;
+
+    let base = svg.append("rect")
+      .attr("class", "base")
+      .attr("fill", "#ba8857")
+      .attr("x", margin.left)
+      .attr("y", margin.top)
+      .attr("width", boardWidth)
+      .attr("height", boardHeight);
+
+
+    //VERTICAL GRIDLINES (Bottom Axis)
+    const gridVScale = d3.scaleLinear()
+      .domain([0, 14])
+      .range([margin.top + bmargin.top, height - margin.bottom - bmargin.bottom]);
+
+    let vertGridlines = d3.axisBottom(gridVScale)
+      .tickSize(boardHeight - bmargin.top - bmargin.bottom)
+      .tickFormat("");
+
+    var tickLabels = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O"];
+
+    //Makes axis labels
+    let bottomAxis = d3.axisBottom(gridVScale)
+      .tickSize(0)
+      .tickFormat(d => { return tickLabels[d] });
+
+    svg.append("g")
+      .attr("class", "vertGrid")
+      .attr("transform", `translate(0,${margin.top + bmargin.top})`)
+      .call(bottomAxis)
+      .selectAll(".tick text")
+      .attr("transform", `translate(0,${boardHeight - bmargin.top - bmargin.bottom + 30})`);
+
+    svg.append("g")
+      .attr("class", "vertGrid")
+      .attr("transform", `translate(0,${margin.top + bmargin.top})`)
+      .call(vertGridlines);
+
+    //HORIZONTAL GRIDLINES (Left Axis)
+    const gridHScale = d3.scaleLinear()
+      .domain([0, 14])
+      .range([height - margin.bottom - bmargin.bottom, margin.top + bmargin.top]);
+
+    let horzGridlines = d3.axisRight(gridHScale)
+      .tickSize(boardWidth - bmargin.left - bmargin.right)
+      .tickFormat("");
+
+    //Makes axis labels
+    let leftAxis = d3.axisLeft(gridHScale)
+      .tickSize(0);
+
+
+    svg.append("g")
+      .attr("class", "horzGrid")
+      .attr("transform", `translate(${margin.left + bmargin.left},0)`)
+      .call(leftAxis)
+      .selectAll(".tick text")
+      .attr("transform", `translate(-30,0)`);
+
+
+    svg.append("g")
+      .attr("class", "horzGrid")
+      .attr("transform", `translate(${margin.left + bmargin.left},0)`)
+      .call(horzGridlines);
+
+
+    //Circle Positioning Scales
+    const circleScaleX = d3.scaleLinear()
+      .domain([0, 14])
+      .range([margin.left + bmargin.left, width - margin.right - bmargin.right]);
+
+    const circleScaleY = d3.scaleLinear()
+      .domain([0, 14])
+      .range([height - bmargin.bottom - margin.bottom, bmargin.top + margin.top])
+
+
+    //Radius of game pieces. Based on width of columns
+    const circleRad = ((boardWidth - bmargin.left - bmargin.right) / 14) / 2.2;
+
+    //Create all circles
+    //tbd can we just update the circles as we go and communicate with backend OR
+    //will we be receiving an array from backend everytime in which case we should do data joins
+    //ie are we just sending the backend the next piece location and it's updating or is it constantly sending us data and we are updating
+
+    for (let i = 0; i < 15; i++) {
+      for (let j = 0; j < 15; j++) {
+        svg.append("circle")
+          .attr("class", "r" + String(j) + "c" + String(i)) //Classified based on their row and column (grid location)
+          .attr("r", circleRad)
+          .attr("fill", "black")
+          .attr("opacity", 0)
+          .attr("cx", circleScaleX(i))
+          .attr("cy", circleScaleY(j))
+          .on("click", appearFunc);
+      }
+    }
+
+    //END OF BOARD SET-UP
+
+    //START OF GAME PLAY FUNCTIONALITY
+
+    var allowClick = true;
+
+    function appearFunc(event, d) {
+      if (allowClick) {
+        let color = "";
+        if (piece < 0) {
+          color = "black";
+        }
+        else {
+          color = "white";
+        }
+        d3.select(this)
+          .attr("fill", color)
+          .attr("opacity", 1)
+          .on("click", null); //removes listener so cant be clicked again
+
+        updateMatrix(piece, d3.select(this).attr("class"));
+        piece *= -1; //so next placed piece has opposite color
+        allowClick = false;
+      }
+      else {
+        console.log("You cannot play another piece until the computer takes its turn.")
+      }
+    }
+
+    //Updates the matrix to take into account where pieces are
+    function updateMatrix(color, tag) {
+      //console.log(tag);
+      let loc = parseLocation(tag); //Parses a circle's class to obtain its grid location in the format [row,col]
+      pieceMatrix[loc[0]][loc[1]] = color;
+      //console.log(pieceMatrix);
+    }
+
+    //Parses a circles class which is a string in format ROW-COL
+    function parseLocation(tag) {
+      var regex = /r(\d+)c(\d+)/;
+
+      // Use exec() to extract the matched numbers
+      var match = regex.exec(tag);
+
+      if (match) {
+        //Should always match since classes are generated at set-up and cannot be changed
+        // Extracted numbers are in match[1] and match[2]
+        let i = match[1];
+        let j = match[2];
+        let loc = [parseInt(i), parseInt(j)];
+        return loc;
+      }
+    }
+
+    function computerPlays() {
+
+    }
+
+    function submit() {
+      //console.log("test");
+      //This function controls the input box that I am using to simulate algorithm game play
+      //To be removed once code is interfaced with actual algorithm
+      var inputValue = document.getElementById("testInput").value;
+
+      let color = "";
+      if (piece < 0) {
+        color = "black";
+      }
+      else {
+        color = "white";
+      }
+
+      inputValue = inputValue.split("-")
+
+
+      let circleClass = "r" + inputValue[0] + "c" + inputValue[1];
+
+      d3.select("circle." + circleClass)
+        .attr("fill", color)
+        .attr("opacity", 1)
+        .on("click", null); //removes listener so cant be clicked again
+
+      updateMatrix(piece, circleClass);
+      piece *= -1; //so next placed piece has opposite color
+      allowClick = true; //lets user place their piece again
+    }
+
+    //END OF GAMEPLAY FUNCTIONALITY
+
+
+  </script>
+</body>
+
+</html>
