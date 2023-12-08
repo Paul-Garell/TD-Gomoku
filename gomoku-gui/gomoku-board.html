@@ -47,12 +47,24 @@
     text-align: center;
   }
 
+  .half h2 {
+    text-align: center;
+  }
+
   .half h3 {
     text-align: center;
   }
 
   .game {
     flex: 1;
+  }
+
+  .instructions {
+    text-align: left;
+    font-size: 22px;
+    margin-right: 20px;
+    margin-left: 20px;
+    line-height: 1.5;
   }
 </style>
 
@@ -61,6 +73,18 @@
     <div class="half">
       <h1>Welcome to TD-Gomoku!</h1>
       <h3>By Paul Garell and Lauren Cali</h3>
+      <br>
+      <h2>How to Play</h2>
+      <div class="instructions">
+        <p> The black stone plays first. Players alternate turns placing their pieces in a strategic manner at grid
+          intersections. To win the game, a player must successfully get at least five of their pieces in a row unbroken
+          vertically, horizontally, or diagonally. If the board fills and no player has achieved five consecutive
+          pieces, the game ends in a draw.
+        </p>
+
+        <p>To begin, click on the intersection where you would like to place your piece. You must wait for the algorithm
+          to make its move before you take your next turn. </p>
+      </div>
       <input type="text" id="testInput">
       <button type="button" onclick="submit()">Submit</button>
     </div>
@@ -84,7 +108,7 @@
       pieceMatrix.push(row);
     }
 
-
+    //START OF BOARD SET-UP
 
     //Used as svg margin
     const margin = { "top": 20, "bottom": 20, "left": 20, "right": 20 };
@@ -183,7 +207,7 @@
     for (let i = 0; i < 15; i++) {
       for (let j = 0; j < 15; j++) {
         svg.append("circle")
-          .attr("class", "r" + String(j) + "c" + String(i))
+          .attr("class", "r" + String(j) + "c" + String(i)) //Classified based on their row and column (grid location)
           .attr("r", circleRad)
           .attr("fill", "black")
           .attr("opacity", 0)
@@ -192,6 +216,10 @@
           .on("click", appearFunc);
       }
     }
+
+    //END OF BOARD SET-UP
+
+    //START OF GAME PLAY FUNCTIONALITY
 
     var allowClick = true;
 
@@ -221,7 +249,7 @@
     //Updates the matrix to take into account where pieces are
     function updateMatrix(color, tag) {
       //console.log(tag);
-      let loc = parseLocation(tag);
+      let loc = parseLocation(tag); //Parses a circle's class to obtain its grid location in the format [row,col]
       pieceMatrix[loc[0]][loc[1]] = color;
       //console.log(pieceMatrix);
     }
@@ -234,6 +262,7 @@
       var match = regex.exec(tag);
 
       if (match) {
+        //Should always match since classes are generated at set-up and cannot be changed
         // Extracted numbers are in match[1] and match[2]
         let i = match[1];
         let j = match[2];
@@ -248,6 +277,8 @@
 
     function submit() {
       //console.log("test");
+      //This function controls the input box that I am using to simulate algorithm game play
+      //To be removed once code is interfaced with actual algorithm
       var inputValue = document.getElementById("testInput").value;
 
       let color = "";
@@ -260,7 +291,6 @@
 
       inputValue = inputValue.split("-")
 
-      //console.log(d3.select("circle.r1c1"));
 
       let circleClass = "r" + inputValue[0] + "c" + inputValue[1];
 
@@ -271,8 +301,10 @@
 
       updateMatrix(piece, circleClass);
       piece *= -1; //so next placed piece has opposite color
-      allowClick = true; //let's user place their piece again
+      allowClick = true; //lets user place their piece again
     }
+
+    //END OF GAMEPLAY FUNCTIONALITY
 
 
   </script>
