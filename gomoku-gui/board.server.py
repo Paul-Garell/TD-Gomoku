@@ -35,6 +35,9 @@ class MyServer(BaseHTTPRequestHandler):
             #print('Received POST data:', data)
 
             # Add your custom handling for the POST request data here
+            #I will eventually add proper code to handle different routes it's just not 
+            # necessary atm since the only thing making POST requests is the front-end 
+            #and its only ever to get the next move
 
             self.send_response(200)
             self.send_header('Content-type', 'application/json')
