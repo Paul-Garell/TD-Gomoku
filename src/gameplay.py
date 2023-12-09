@@ -196,7 +196,7 @@ if __name__ == "__main__":
 
     # net = DQN()
     # optimizer = optim.Adam(net.parameters())
-    PATH = "src/gomo-test-output.pth"
+    PATH = "src/savedModels/gomo_200epoch_random_OP.pth"
 
     # Load
     model = DQN(env.dim **2)
