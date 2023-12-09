@@ -3,11 +3,14 @@ import json
 import random
 
 import gameplay
+import numpy as np
 
 hostName = "localhost"
 serverPort = 8000
 #TO DO: fix below
-htmlFilePath = "gomoku-board.html"
+htmlFilePath = "src/gomoku-board.html"
+playersDict = {1: 'p1',2: 'p2', -1: 'p2'} # This should not have -1 , but player 2 start bug
+
 
 class MyServer(BaseHTTPRequestHandler):
     def do_GET(self):
@@ -35,8 +38,27 @@ class MyServer(BaseHTTPRequestHandler):
 
         try:
             data = json.loads(post_data.decode('utf-8'))
-            #print('Received POST data:', data)
-            print(data)
+
+            counter = 0
+            board = np.zeros((env.dim, env.dim))
+            indexCount = 0
+            # while indexCount < len(data):
+            #     v = data[indexCount]
+            for v in data['board']:
+                if v.isnumeric():
+                    pot = int(counter/env.dim)
+                    oth = counter % env.dim
+                    board[pot][oth] = int(v)
+                    counter +=1
+
+            print(board)
+            print("****3***")
+            curplayer = playersDict[data['player']]
+
+            env.importBoard(board)
+            state, coor, gameIsDone = gameplay.make_inference(env, curplayer, model, device)
+            print(coor)
+            random_row, random_col = coor
             # Add your custom handling for the POST request data here
             #I will eventually add proper code to handle different routes it's just not 
             # necessary atm since the only thing making POST requests is the front-end 
@@ -45,11 +67,12 @@ class MyServer(BaseHTTPRequestHandler):
             self.send_response(200)
             self.send_header('Content-type', 'application/json')
             self.end_headers()
-            random_row = random.randint(0, 14)
-            random_col = random.randint(0,14)
-            coor = str(random_row)+"-"+str(random_col)
+            # random_row = random.randint(0, 14)
+            # random_col = random.randint(0,14)
+            coor = str(int(random_row))+"-"+str(int(random_col))
             response_data = {'move': coor}
             self.wfile.write(json.dumps(response_data).encode('utf-8'))
+            print("ran")
 
         except json.JSONDecodeError:
             self.send_response(400)  # Bad Request

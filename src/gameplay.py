@@ -27,6 +27,15 @@ class gomoku_game:
     def gameIsDone(self):
         return self.isDone
 
+    def importBoard(self, board):
+        self.available.clear()
+        self.state = board
+        for i in range(self.dim):
+            for j in range(self.dim):
+                if self.state[i][j] == 0:
+                    self.available.append(i + j* self.dim)
+        # return self.state, self.available
+
     def render(self): #rev
         rendered_board_state = self.state.copy().astype(str)
         rendered_board_state[self.state == 0] = ' '
@@ -169,8 +178,6 @@ The output correpsonding to the move is in the format "r-c" as a string
 '''
 def make_inference(env, player, neural_net, device):
     available_actions = env.get_available_actions()
-    print(type(env.state))
-    print(type(available_actions))
     action = select__action_inference(env.state, available_actions, neural_net, device)
     state, reward = env.make_move(action, player)
 
@@ -183,9 +190,9 @@ def make_inference(env, player, neural_net, device):
     row = action % env.boardDim()
     action = action - row
     col = action / env.boardDim()
-    stringify = str(row) + "-" + str(col)
+    # stringify = str(row) + "-" + str(col)
 
-    return state, stringify, gameIsDone
+    return state, (row, col), gameIsDone
 
 
 
