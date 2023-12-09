@@ -7,7 +7,7 @@ import random
 import numpy as np
 from IPython.display import display
 import pandas as pd
-
+import time 
 
 class gomoku_game:
     def __init__(self):
@@ -147,14 +147,12 @@ class DQN(nn.Module):
         # x = F.leaky_relu(self.MLP3(x))
         return self.MLP4(x)
 
-
-def select__action_inference(state, available_actions, neuralnet):
+#helper function to get action
+def select__action_inference(state, available_actions, neuralnet, device):
     with torch.no_grad():
         all_probabilities = neuralnet(torch.tensor(state, dtype=torch.float, device=device).unsqueeze(dim=0).unsqueeze(dim=0))[0, :] #unsqez
         potential_action_probs = [all_probabilities[a] for a in available_actions]
         return available_actions[np.argmax(potential_action_probs)] 
-
-
 
 
 '''
@@ -169,9 +167,11 @@ The gameIsDone output is {-1, 0, 1} corresponding to -1= game is not done, 0=gam
 
 The output correpsonding to the move is in the format "r-c" as a string
 '''
-def make_inference(env, player, neural_net):
+def make_inference(env, player, neural_net, device):
     available_actions = env.get_available_actions()
-    action = select__action_inference(env.state, available_actions, neural_net)
+    print(type(env.state))
+    print(type(available_actions))
+    action = select__action_inference(env.state, available_actions, neural_net, device)
     state, reward = env.make_move(action, player)
 
     gameIsDone = -1
@@ -187,33 +187,37 @@ def make_inference(env, player, neural_net):
 
     return state, stringify, gameIsDone
 
-import time 
-if __name__ == "__main__": 
-    players = ['p1','p2']
+
+
+def get_Model_Device_Environment():
     env = gomoku_game()
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    
-
-    # net = DQN()
-    # optimizer = optim.Adam(net.parameters())
     PATH = "src/savedModels/gomo_200epoch_random_OP.pth"
-
-    # Load
     model = DQN(env.dim **2)
     model.load_state_dict(torch.load(PATH))
     model.eval()
+    return model, device, env
+
+
+
+if __name__ == "__main__": 
+    players = ['p1','p2']
+    
+    # net = DQN()
+    # optimizer = optim.Adam(net.parameters())
 
     gameIsRunning = True
+    model, device, env = get_Model_Device_Environment()
 
     while gameIsRunning:
-        state, stringify, gameIsDone = make_inference(env, 'p1', model)
+        state, coord, gameIsDone = make_inference(env, 'p1', model, device)
         print(state)
-        print(stringify)
+        print(coord)
         print(gameIsDone)
-        time.sleep(5)
-        state, stringify, gameIsDone = make_inference(env, 'p2', model)
+        time.sleep(3)
+        state, coord, gameIsDone = make_inference(env, 'p2', model)
         print(state)
-        print(stringify)
+        print(coord)
         print(gameIsDone)
-        time.sleep(5)
+        time.sleep(3)
         

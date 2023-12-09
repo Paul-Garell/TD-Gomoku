@@ -2,6 +2,8 @@ from http.server import BaseHTTPRequestHandler, HTTPServer
 import json
 import random
 
+import gameplay
+
 hostName = "localhost"
 serverPort = 8000
 #TO DO: fix below
@@ -34,7 +36,7 @@ class MyServer(BaseHTTPRequestHandler):
         try:
             data = json.loads(post_data.decode('utf-8'))
             #print('Received POST data:', data)
-
+            print(data)
             # Add your custom handling for the POST request data here
             #I will eventually add proper code to handle different routes it's just not 
             # necessary atm since the only thing making POST requests is the front-end 
@@ -58,6 +60,8 @@ class MyServer(BaseHTTPRequestHandler):
 
 
 if __name__ == "__main__":        
+    model, device, env = gameplay.get_Model_Device_Environment()
+
     webServer = HTTPServer((hostName, serverPort), MyServer)
     print("Server started http://%s:%s" % (hostName, serverPort))
 
