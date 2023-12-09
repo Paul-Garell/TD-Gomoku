@@ -71,6 +71,23 @@
     margin-right: 25px;
   }
 
+  .p1:hover {
+    background-color: rgba(0, 0, 0, .5);
+
+  }
+
+  .p2:hover {
+    background-color: rgba(187, 187, 187, 0.5);
+  }
+
+  .reset:hover {
+    background-color: rgba(187, 187, 187, 0.5);
+  }
+
+  button:hover {
+    cursor: pointer;
+  }
+
   .p2 {
     background-color: white;
     color: black;
@@ -115,11 +132,23 @@
 
   #win-text {
     font-size: 60px;
+    margin: 35px;
   }
 
   #reset {
     display: none;
     justify-content: center;
+  }
+
+  #player-id {
+    display: none;
+    justify-content: center;
+    height: fit-content;
+  }
+
+  #player-text {
+    font-size: 45px;
+    margin: 0;
   }
 </style>
 
@@ -137,12 +166,17 @@
           pieces, the game ends in a draw.
         </p>
 
-        <p>To begin, click on the intersection where you would like to place your piece. You must wait for the algorithm
-          to make its move before you take your next turn. </p>
+        <p>To begin, select whether you would like to be Player 1 or Player 2. </p>
+        <p>When it's your turn, click on the intersection where you would like to place your piece. You must wait for
+          the algorithm
+          to make its move before you take your next turn.</p>
       </div>
-      <div class="buttons">
-        <button type="button" class="p1">Player 1</button>
-        <button type="button" class="p2">Player 2</button>
+      <div class="buttons" id="buttons">
+        <button type="button" class="p1" id="p1" onclick="start(1)">Player 1</button>
+        <button type="button" class="p2" id="p2" onclick="start(2)">Player 2</button>
+      </div>
+      <div class="player-id" id="player-id">
+        <p class="player-text" id="player-text"></p>
       </div>
       <div id="win">
         <p id="win-text"></p>
@@ -160,6 +194,7 @@
   <script>
     var piece = -1;
     var displayWin = false;
+    var turnCount = 0;
 
     var pieceMatrix = [];
     let rows = 15;
@@ -287,10 +322,33 @@
 
     //START OF GAME PLAY FUNCTIONALITY
 
-    var allowClick = true;
+    //Cannot begin play until you pick p1 or p2
+    var allowClick = false;
+
+    //Begins play once user selects if they want to be P1 or P2
+    function start(player) {
+      console.log("clicked");
+      let p = document.getElementById('buttons');
+
+      p.style.display = 'none';
+      let dis = document.getElementById('player-id');
+      let disText = document.getElementById('player-text');
+
+      dis.style.display = "flex";
+
+      if (player == 1) {
+        allowClick = true;
+        disText.textContent = "You are Player 1.";
+      }
+      else {
+        disText.textContent = "You are Player 2.";
+        computerPlays();
+      }
+    }
 
     function appearFunc(event, d) {
       if (allowClick) {
+        turnCount += 1;
         let color = "";
         if (piece < 0) {
           color = "black";
@@ -371,7 +429,7 @@
           .catch(error => console.error('Error:', error));
 
         //console.log(move);
-
+        turnCount += 1;
         inputValue = move["move"].split("-");
 
         let color = "";
@@ -563,12 +621,12 @@
       let res1 = checkDiagB(row, col);
       let res2 = checkV(row, col);
       let res3 = checkH(row, col);
+      let winDiv = document.getElementById('win');
+      let resetDiv = document.getElementById('reset');
+      let winText = document.getElementById('win-text');
       if (res || res1 || res2 || res3) {
         console.log("WIN");
         displayWin = true;
-        let winDiv = document.getElementById('win');
-        let resetDiv = document.getElementById('reset');
-        let winText = document.getElementById('win-text');
         winDiv.style.display = 'flex';
         resetDiv.style.display = 'flex';
         let message = "wins!";
@@ -581,6 +639,12 @@
         winText.textContent = message;
         return true;
       }
+      else if (turnCount == 225) {
+        displayWin = true;
+        winDiv.style.display = 'flex';
+        resetDiv.style.display = 'flex';
+        winText.textContent = "It's a draw!";
+      }
       return false;
     }
 
@@ -591,13 +655,19 @@
     function reset() {
       allowClick = true;  //Player 1 can start
       displayWin = false; //don't currently use this variable
+      turnCount = 0;
 
       //Clear all elements related to displaying a win
       let winDiv = document.getElementById('win');
       let resetDiv = document.getElementById('reset');
       let winText = document.getElementById('win-text');
+      let p = document.getElementById('buttons');
+      let dis = document.getElementById('player-id');
+
       winDiv.style.display = 'none';
       resetDiv.style.display = 'none';
+      p.style.display = 'flex';
+      dis.style.display = 'none';
 
       //Reset to starting color (black)
       piece = -1;
