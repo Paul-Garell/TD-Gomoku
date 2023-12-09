@@ -98,6 +98,23 @@
     width: 170px;
     font-size: 22px;
     margin-left: 25px;
+    margin-right: 25px;
+  }
+
+  .p3 {
+    background-color: rgb(222, 143, 143);
+    color: rgb(85, 23, 23);
+    border-width: 2px;
+    border-color: rgb(85, 23, 23);
+    border-style: solid;
+    height: 70px;
+    width: 170px;
+    font-size: 22px;
+    margin-left: 25px;
+  }
+
+  .p3:hover {
+    background-color: rgba(222, 143, 143, 0.6);
   }
 
   .reset {
@@ -150,6 +167,10 @@
     font-size: 45px;
     margin: 0;
   }
+
+  .eyes {
+    display: none;
+  }
 </style>
 
 <body>
@@ -167,6 +188,7 @@
         </p>
 
         <p>To begin, select whether you would like to be Player 1 or Player 2. </p>
+        <p>Or, sit back and watch the bot play itself!</p>
         <p>When it's your turn, click on the intersection where you would like to place your piece. You must wait for
           the algorithm
           to make its move before you take your next turn.</p>
@@ -174,9 +196,11 @@
       <div class="buttons" id="buttons">
         <button type="button" class="p1" id="p1" onclick="start(1)">Player 1</button>
         <button type="button" class="p2" id="p2" onclick="start(2)">Player 2</button>
+        <button type="button" class="p3" id="p3" onclick="start(3)">Watch Bot Play Itself</button>
       </div>
       <div class="player-id" id="player-id">
         <p class="player-text" id="player-text"></p>
+        <img class="eyes" id="eyes" src="eyeballs.png" alt="eyeballs">
       </div>
       <div id="win">
         <p id="win-text"></p>
@@ -192,7 +216,7 @@
     </div>
   </div>
   <script>
-    var piece = -1;
+    var piece = 1;
     var displayWin = false;
     var turnCount = 0;
 
@@ -335,9 +359,15 @@
         allowClick = true;
         disText.textContent = "You are Player 1.";
       }
-      else {
+      else if (player == 2) {
         disText.textContent = "You are Player 2.";
         computerPlays();
+      }
+      else {
+        let eyes = document.getElementById('eyes');
+        eyes.style.display = 'flex';
+        disText.textContent = "You are watching the bot.";
+        console.log("TBD");
       }
     }
 
@@ -345,7 +375,7 @@
       if (allowClick) {
         turnCount += 1;
         let color = "";
-        if (piece < 0) {
+        if (piece == 1) {
           color = "black";
         }
         else {
@@ -357,7 +387,10 @@
           .on("click", null); //removes listener so cant be clicked again for duration of game
         let tag = d3.select(this).attr("class");
         updateMatrix(piece, tag);
-        piece *= -1; //so next placed piece has opposite color
+        if (piece == 1) {
+          piece = 2;
+        }
+        else { piece = 1; }//so next placed piece has opposite color
         allowClick = false;
         let coor = parseLocation(tag);
 
@@ -375,10 +408,9 @@
 
     //Updates the matrix to take into account where pieces are
     function updateMatrix(color, tag) {
-      //console.log(tag);
+      console.log(pieceMatrix);
       let loc = parseLocation(tag); //Parses a circle's class to obtain its grid location in the format [row,col]
       pieceMatrix[loc[0]][loc[1]] = color;
-      //console.log(pieceMatrix);
     }
 
     //Parses a circles class which is a string in format r(row#)c(col#)
@@ -401,7 +433,7 @@
 
     async function computerPlays() {
       try {
-        let test_data = { "board": JSON.stringify(pieceMatrix) };
+        let test_data = { "board": JSON.stringify(pieceMatrix), "player": piece };
         let move = "";
         await fetch("http://localhost:8000/receive_state", {
           method: 'POST',
@@ -419,7 +451,7 @@
         inputValue = move["move"].split("-");
 
         let color = "";
-        if (piece < 0) {
+        if (piece == 1) {
           color = "black";
         }
         else {
@@ -441,7 +473,12 @@
 
         else {
 
-          piece *= -1; //so next placed piece has opposite color
+          if (piece == 1) {
+            piece = 2;
+          }
+          else {
+            piece = 1;
+          } //so next placed piece has opposite color
           allowClick = true; //lets user place their piece again
         }
 
@@ -452,8 +489,6 @@
       }
 
     }
-
-
 
     // function submit() {
     //   //console.log("test");
@@ -492,7 +527,6 @@
     function checkDiagF(row, col) {
       let ri = row + 1;
       let rj = col + 1;
-
       count = 1;
 
       while (ri < pieceMatrix.length && rj < pieceMatrix.length && pieceMatrix[ri][rj] == pieceMatrix[row][col]) {
@@ -531,7 +565,6 @@
         lj -= 1;
         count += 1;
         if (count >= 5) {
-          //console.log("win");
           return true;
         }
       }
@@ -549,8 +582,6 @@
       }
 
       return false;
-
-
     }
 
 
@@ -662,7 +693,6 @@
 
       let rows = 15;
       let cols = 15;
-
       //Clear piece matrix (no pieces on board)
       for (var i = 0; i < rows; i++) {
         for (var j = 0; j < cols; j++) {
