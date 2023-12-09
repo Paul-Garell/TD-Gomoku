@@ -5,6 +5,7 @@ created by Lauren and Paul!
 lauren says hi
 
 To launch GUI:</br>
+-Copy repository to your device</br>
 -Navigate to gomoku-gui folder in your terminal </br>
 -Run python board.server.py </br>
 -Open localhost:8000 on Chrome</br>
