@@ -300,11 +300,6 @@
     //Radius of game pieces. Based on width of columns
     const circleRad = ((boardWidth - bmargin.left - bmargin.right) / 14) / 2.2;
 
-    //Create all circles
-    //tbd can we just update the circles as we go and communicate with backend OR
-    //will we be receiving an array from backend everytime in which case we should do data joins
-    //ie are we just sending the backend the next piece location and it's updating or is it constantly sending us data and we are updating
-
     for (let i = 0; i < 15; i++) {
       for (let j = 0; j < 15; j++) {
         svg.append("circle")
@@ -359,7 +354,7 @@
         d3.select(this)
           .attr("fill", color)
           .attr("opacity", 1)
-          .on("click", null); //removes listener so cant be clicked again
+          .on("click", null); //removes listener so cant be clicked again for duration of game
         let tag = d3.select(this).attr("class");
         updateMatrix(piece, tag);
         piece *= -1; //so next placed piece has opposite color
@@ -374,7 +369,7 @@
         }
       }
       else {
-        console.log("You cannot play another piece until the computer takes its turn.")
+        console.log("It's not your turn.")
       }
     }
 
@@ -406,15 +401,6 @@
 
     async function computerPlays() {
       try {
-        // let move = await fetch('http://localhost:8000', {
-        //   method: 'POST',
-        //   headers: {
-        //     'Content-Type': 'application/json',
-        //   },
-        //   body: JSON.stringify(boardState),
-        // });
-
-        //
         let test_data = { "board": JSON.stringify(pieceMatrix) };
         let move = "";
         await fetch("http://localhost:8000/receive_state", {
@@ -639,6 +625,9 @@
         winText.textContent = message;
         return true;
       }
+
+      //If no one has won the game, but 225 pieces have been placed, 
+      //there is a draw since the board is now full
       else if (turnCount == 225) {
         displayWin = true;
         winDiv.style.display = 'flex';
@@ -653,7 +642,6 @@
 
     //Reset game to play again
     function reset() {
-      allowClick = true;  //Player 1 can start
       displayWin = false; //don't currently use this variable
       turnCount = 0;
 
