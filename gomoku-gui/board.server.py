@@ -4,7 +4,8 @@ import random
 
 hostName = "localhost"
 serverPort = 8000
-htmlFilePath = "/Users/lcali/Desktop/ai-prac/TD-Gomoku/gomoku-gui/gomoku-board.html"
+#TO DO: fix below
+htmlFilePath = "gomoku-board.html"
 
 class MyServer(BaseHTTPRequestHandler):
     def do_GET(self):
