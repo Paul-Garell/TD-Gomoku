@@ -374,13 +374,8 @@
     function appearFunc(event, d) {
       if (allowClick) {
         turnCount += 1;
-        let color = "";
-        if (piece == 1) {
-          color = "black";
-        }
-        else {
-          color = "white";
-        }
+        let color = (piece == 1) ? "black" : "white";
+
         d3.select(this)
           .attr("fill", color)
           .attr("opacity", 1)
@@ -696,7 +691,7 @@
       let circle = d3.selectAll("circle")
         .attr("fill", "black")
         .attr("opacity", 0)
-        .attr("stroke-width", 0)
+        .attr("stroke-width", 0) //don't have to worry about resetting color since border is 0
         .on("click", appearFunc);
     }
 
