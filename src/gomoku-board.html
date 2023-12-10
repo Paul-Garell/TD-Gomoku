@@ -334,6 +334,7 @@
           .attr("opacity", 0)
           .attr("cx", circleScaleX(i))
           .attr("cy", circleScaleY(j))
+          .style("cursor", "pointer")
           .on("click", appearFunc);
       }
     }
@@ -367,7 +368,6 @@
         // eyes.style.display = 'flex';
         disText.textContent = "You are watching the bot.";
         computerPlays();
-
       }
     }
 
@@ -379,6 +379,7 @@
         d3.select(this)
           .attr("fill", color)
           .attr("opacity", 1)
+          .style("cursor", "default")
           .on("click", null); //removes listener so cant be clicked again for duration of game
 
         let tag = d3.select(this).attr("class");
@@ -448,6 +449,7 @@
         d3.select("circle." + circleClass)
           .attr("fill", color)
           .attr("opacity", 1)
+          .style("cursor", "default")
           .on("click", null); //removes listener so cant be clicked again
 
         updateMatrix(piece, circleClass);
@@ -513,7 +515,6 @@
         lj -= 1;
         count += 1;
         if (count >= 5) {
-          //console.log("win");
           winP = winP.concat(validP);
           return true;
         }
@@ -692,11 +693,11 @@
         .attr("fill", "black")
         .attr("opacity", 0)
         .attr("stroke-width", 0) //don't have to worry about resetting color since border is 0
+        .style("cursor", "pointer")
         .on("click", appearFunc);
     }
 
     function colorWin() {
-      console.log(winP);
       for (let i = 0; i < winP.length; i++) {
         console.log("coloring")
         d3.selectAll("circle." + winP[i])
