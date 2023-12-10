@@ -10,4 +10,6 @@ To launch GUI:</br>
 -Run python src/board.server.py </br>
 -Open localhost:8000 on Chrome</br>
 
+Our bot is still learning, please be nice.
+
 Questions? email prg74@cornell.edu and lmc339@cornell.edu
