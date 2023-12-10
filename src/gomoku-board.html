@@ -388,10 +388,7 @@
         allowClick = false; //prevents user from placing pieces during computer's turn
 
         let coor = parseLocation(tag);
-        if (winCheck(coor[0], coor[1])) {
-          console.log("game over");
-        }
-        else {
+        if (!winCheck(coor[0], coor[1])) {
           computerPlays();
         }
       }
@@ -454,12 +451,7 @@
 
         updateMatrix(piece, circleClass);
 
-        if (winCheck(parseInt(inputValue[0]), parseInt(inputValue[1]))) {
-          console.log("game over");
-        }
-
-        else {
-
+        if (!winCheck(parseInt(inputValue[0]), parseInt(inputValue[1]))) {
           piece = (piece == 1) ? 2 : 1; //next piece opposite color
 
           if (watching != true) {
@@ -467,10 +459,11 @@
             allowClick = true; //lets user place their piece again
           }
           else {
-            //in loop
+            //wait 1 sec before making next play
             setTimeout(computerPlays, 1000);
           }
         }
+
       }
 
       catch (error) {
@@ -478,8 +471,6 @@
       }
 
     }
-
-
 
     //END OF GAMEPLAY FUNCTIONALITY
 
@@ -619,6 +610,8 @@
 
 
     function winCheck(row, col) {
+      //Returns true if the game is over (win or tie)
+      //Returns false otherwise
       let res = checkDiagF(row, col);
       let res1 = checkDiagB(row, col);
       let res2 = checkV(row, col);
@@ -627,19 +620,14 @@
       let resetDiv = document.getElementById('reset');
       let winText = document.getElementById('win-text');
       if (res || res1 || res2 || res3) {
-        //console.log("WIN");
+        //A player has won the game
         colorWin();
+        let message = (pieceMatrix[row][col] == 1) ? "Player 1 wins!" : "Player 2 wins!";
+
+        winText.textContent = message;
         displayWin = true;
         winDiv.style.display = 'flex';
-        resetDiv.style.display = 'flex';
-        let message = "wins!";
-        if (pieceMatrix[row][col] == 1) {
-          message = "Player 1 " + message;
-        }
-        else {
-          message = "Player 2 " + message;
-        }
-        winText.textContent = message;  //Display the winner
+        resetDiv.style.display = 'flex';  //Display the winner
         return true;
       }
 
@@ -647,9 +635,10 @@
       //there is a draw since the board is now full
       else if (turnCount == 225) {
         displayWin = true;
+        winText.textContent = "It's a draw!";
         winDiv.style.display = 'flex';
         resetDiv.style.display = 'flex';
-        winText.textContent = "It's a draw!";
+        return true;
       }
       return false;
     }
@@ -699,7 +688,6 @@
 
     function colorWin() {
       for (let i = 0; i < winP.length; i++) {
-        console.log("coloring")
         d3.selectAll("circle." + winP[i])
           .attr("stroke-width", 2)
           .attr("stroke", "yellow");
