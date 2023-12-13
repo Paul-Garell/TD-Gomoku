@@ -123,37 +123,40 @@ class gomoku_game:
             self.isDone = True
         return self.state, reward
 
+
 class DQN(nn.Module):
     def __init__(self, outputs):
         super(DQN, self).__init__()
         # 6 by 7, 10 by 11 
-        self.conv1 = nn.Conv2d(1, 32, kernel_size=(7,7), padding=2)
-        self.conv2 = nn.Conv2d(32, 32, kernel_size=(7,7), padding=2)
-        self.conv3 = nn.Conv2d(32, 32, kernel_size=(7,7), padding=2)
-        # self.conv4 = nn.Conv2d(128, 128, kernel_size=4, padding=2)
-        # self.conv5 = nn.Conv2d(128, 64, kernel_size=4, padding=2)
-        # self.conv6 = nn.Conv2d(64, 32, kernel_size=4, padding=2)
-        # self.conv7 = nn.Conv2d(32, 32, kernel_size=4, padding=2)
+        self.conv1 = nn.Conv2d(1, 32, kernel_size=5, padding=2)
+        self.conv2 = nn.Conv2d(32, 32, kernel_size=5, padding=2)
+        self.conv3 = nn.Conv2d(32, 32, kernel_size=5, padding=2)
+        # self.pool = nn.MaxPool2d((5,5))
+        self.conv4 = nn.Conv2d(32, 32, kernel_size=5, padding=2)
+        self.conv5 = nn.Conv2d(32, 32, kernel_size=5, padding=2)
+        self.conv6 = nn.Conv2d(32, 32, kernel_size=5, padding=2)
+        self.conv7 = nn.Conv2d(32, 32, kernel_size=5, padding=2)
 
         # linear_input_size = 6 * 7 * 32
-        self.MLP1 = nn.Linear(2592, 1024)
-        self.MLP2 = nn.Linear(1024, 1024)
-        # self.MLP3 = nn.Linear(50, 50)
-        self.MLP4 = nn.Linear(1024, outputs)
+        self.MLP1 = nn.Linear(7200, 512)
+        self.MLP2 = nn.Linear(512, 512)
+        self.MLP3 = nn.Linear(512, 512)
+        self.MLP4 = nn.Linear(512, outputs)
         
     def forward(self, x):
         x = F.leaky_relu(self.conv1(x))
         x = F.leaky_relu(self.conv2(x))
         x = F.leaky_relu(self.conv3(x))
-        # x = F.leaky_relu(self.conv4(x))
-        # x = F.leaky_relu(self.conv5(x))
-        # x = F.leaky_relu(self.conv6(x))
-        # x = F.leaky_relu(self.conv7(x))
+        # x = self.pool(x)
+        x = F.leaky_relu(self.conv4(x))
+        x = F.leaky_relu(self.conv5(x))
+        x = F.leaky_relu(self.conv6(x))
+        x = F.leaky_relu(self.conv7(x))
         # flatten the feature vector except batch dimension
         x = x.view(x.size(0), -1)
         x = F.leaky_relu(self.MLP1(x))
         x = F.leaky_relu(self.MLP2(x))
-        # x = F.leaky_relu(self.MLP3(x))
+        x = F.leaky_relu(self.MLP3(x))
         return self.MLP4(x)
 
 #helper function to get action
@@ -196,10 +199,11 @@ def make_inference(env, player, neural_net, device):
 
 
 
-def get_Model_Device_Environment():
+def get_Model_Device_Environment(folderPath):
     env = gomoku_game()
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    PATH = "src/savedModels/gomo_200epoch_random_OP.pth"
+    PATH = folderPath + "/model.pth"
+    # PATH = "src/savedModels/gomo_200epoch_random_OP.pth"
     model = DQN(env.dim **2)
     model.load_state_dict(torch.load(PATH))
     model.eval()
@@ -214,7 +218,7 @@ if __name__ == "__main__":
     # optimizer = optim.Adam(net.parameters())
 
     gameIsRunning = True
-    model, device, env = get_Model_Device_Environment()
+    model, device, env = get_Model_Device_Environment("gomgomgmogmggnognognognognog")
 
     while gameIsRunning:
         state, coord, gameIsDone = make_inference(env, 'p1', model, device)

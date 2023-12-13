@@ -10,7 +10,7 @@ serverPort = 8000
 #TO DO: fix below
 htmlFilePath = "src/gomoku-board.html"
 playersDict = {1: 'p1',2: 'p2', -1: 'p2'} # This should not have -1 , but player 2 start bug
-
+modelPath = "src/200Epoch-7conv-4linear"
 
 class MyServer(BaseHTTPRequestHandler):
     def do_GET(self):
@@ -83,7 +83,7 @@ class MyServer(BaseHTTPRequestHandler):
 
 
 if __name__ == "__main__":        
-    model, device, env = gameplay.get_Model_Device_Environment()
+    model, device, env = gameplay.get_Model_Device_Environment(modelPath)
 
     webServer = HTTPServer((hostName, serverPort), MyServer)
     print("Server started http://%s:%s" % (hostName, serverPort))
