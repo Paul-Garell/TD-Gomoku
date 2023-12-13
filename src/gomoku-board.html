@@ -219,6 +219,7 @@
     var piece = 1;
     var displayWin = false;
     var turnCount = 0;
+    var watching = false;
 
     var pieceMatrix = [];
     let rows = 15;
@@ -333,6 +334,7 @@
           .attr("opacity", 0)
           .attr("cx", circleScaleX(i))
           .attr("cy", circleScaleY(j))
+          .style("cursor", "pointer")
           .on("click", appearFunc);
       }
     }
@@ -346,13 +348,10 @@
 
     //Begins play once user selects if they want to be P1 or P2
     function start(player) {
-      console.log("clicked");
       let p = document.getElementById('buttons');
-
       p.style.display = 'none';
       let dis = document.getElementById('player-id');
       let disText = document.getElementById('player-text');
-
       dis.style.display = "flex";
 
       if (player == 1) {
@@ -364,65 +363,56 @@
         computerPlays();
       }
       else {
-        let eyes = document.getElementById('eyes');
-        eyes.style.display = 'flex';
+        watching = true;
+        // let eyes = document.getElementById('eyes');
+        // eyes.style.display = 'flex';
         disText.textContent = "You are watching the bot.";
-        console.log("TBD");
+        computerPlays();
       }
     }
 
     function appearFunc(event, d) {
       if (allowClick) {
         turnCount += 1;
-        let color = "";
-        if (piece == 1) {
-          color = "black";
-        }
-        else {
-          color = "white";
-        }
+        let color = (piece == 1) ? "black" : "white";
+
         d3.select(this)
           .attr("fill", color)
           .attr("opacity", 1)
+          .style("cursor", "default")
           .on("click", null); //removes listener so cant be clicked again for duration of game
+
         let tag = d3.select(this).attr("class");
         updateMatrix(piece, tag);
-        if (piece == 1) {
-          piece = 2;
-        }
-        else { piece = 1; }//so next placed piece has opposite color
-        allowClick = false;
-        let coor = parseLocation(tag);
+        piece = (piece == 1) ? 2 : 1; //so next piece has opp color
+        allowClick = false; //prevents user from placing pieces during computer's turn
 
-        if (winCheck(coor[0], coor[1])) {
-          console.log("game over");
-        }
-        else {
+        let coor = parseLocation(tag);
+        if (!winCheck(coor[0], coor[1])) {
           computerPlays();
         }
       }
       else {
+        //change to actual webpage display?
         console.log("It's not your turn.")
       }
     }
 
     //Updates the matrix to take into account where pieces are
     function updateMatrix(color, tag) {
-      console.log(pieceMatrix);
+      //console.log(pieceMatrix);
       let loc = parseLocation(tag); //Parses a circle's class to obtain its grid location in the format [row,col]
       pieceMatrix[loc[0]][loc[1]] = color;
     }
 
-    //Parses a circles class which is a string in format r(row#)c(col#)
+    //Parses a circle's class which is a string in format r(row#)c(col#)
     function parseLocation(tag) {
       var regex = /r(\d+)c(\d+)/;
-
       // Use exec() to extract the matched numbers
       var match = regex.exec(tag);
 
       if (match) {
         //Should always match since classes are generated at set-up and cannot be changed
-        // Extracted numbers are in match[1] and match[2]
         let i = match[1];
         let j = match[2];
         let loc = [parseInt(i), parseInt(j)];
@@ -446,40 +436,32 @@
           .then(data => move = data)  //API responds with JSON containing algorithm's move in format {"move":"row-col"}
           .catch(error => console.error('Error:', error));
 
-        //console.log(move);
         turnCount += 1;
         inputValue = move["move"].split("-");
 
-        let color = "";
-        if (piece == 1) {
-          color = "black";
-        }
-        else {
-          color = "white";
-        }
+        let color = (piece == 1) ? "black" : "white";
 
         let circleClass = "r" + inputValue[0] + "c" + inputValue[1];  //convert move to corresponding circle class
 
         d3.select("circle." + circleClass)
           .attr("fill", color)
           .attr("opacity", 1)
+          .style("cursor", "default")
           .on("click", null); //removes listener so cant be clicked again
 
         updateMatrix(piece, circleClass);
 
-        if (winCheck(parseInt(inputValue[0]), parseInt(inputValue[1]))) {
-          console.log("game over");
-        }
+        if (!winCheck(parseInt(inputValue[0]), parseInt(inputValue[1]))) {
+          piece = (piece == 1) ? 2 : 1; //next piece opposite color
 
-        else {
-
-          if (piece == 1) {
-            piece = 2;
+          if (watching != true) {
+            //if the user is not just watching the bot play
+            allowClick = true; //lets user place their piece again
           }
           else {
-            piece = 1;
-          } //so next placed piece has opposite color
-          allowClick = true; //lets user place their piece again
+            //wait 1 sec before making next play
+            setTimeout(computerPlays, 1000);
+          }
         }
 
       }
@@ -490,50 +472,26 @@
 
     }
 
-    // function submit() {
-    //   //console.log("test");
-    //   //This function controls the input box that I am using to simulate algorithm game play
-    //   //To be removed once code is interfaced with actual algorithm
-    //   var inputValue = document.getElementById("testInput").value;
-
-    //   let color = "";
-    //   if (piece < 0) {
-    //     color = "black";
-    //   }
-    //   else {
-    //     color = "white";
-    //   }
-
-    //   inputValue = inputValue.split("-")
-
-
-    //   let circleClass = "r" + inputValue[0] + "c" + inputValue[1];
-
-    //   d3.select("circle." + circleClass)
-    //     .attr("fill", color)
-    //     .attr("opacity", 1)
-    //     .on("click", null); //removes listener so cant be clicked again
-
-    //   updateMatrix(piece, circleClass);
-    //   piece *= -1; //so next placed piece has opposite color
-    //   allowClick = true; //lets user place their piece again
-    // }
-
     //END OF GAMEPLAY FUNCTIONALITY
 
     //START WIN CHECKS
 
+    var winP = [];
 
     function checkDiagF(row, col) {
+      //Checks to see if there are 5 in a row on a forwards diagnol (/)
+      let validP = [("r" + String(row) + "c" + String(col)),];
       let ri = row + 1;
       let rj = col + 1;
       count = 1;
 
       while (ri < pieceMatrix.length && rj < pieceMatrix.length && pieceMatrix[ri][rj] == pieceMatrix[row][col]) {
+        validP.push("r" + String(ri) + "c" + String(rj));
         ri += 1;
         rj += 1;
         count += 1;
         if (count >= 5) {
+          winP = winP.concat(validP);
           return true;
         }
 
@@ -543,11 +501,12 @@
       let lj = col - 1;
 
       while (li >= 0 && lj >= 0 && pieceMatrix[li][lj] == pieceMatrix[row][col]) {
+        validP.push("r" + String(li) + "c" + String(lj));
         li -= 1;
         lj -= 1;
         count += 1;
         if (count >= 5) {
-          //console.log("win");
+          winP = winP.concat(validP);
           return true;
         }
       }
@@ -556,15 +515,19 @@
     }
 
     function checkDiagB(row, col) {
+      //Checks to see if there are 5 in a row on backwards diagnol (\)
+      let validP = [("r" + String(row) + "c" + String(col)),];
       let li = row + 1;
       let lj = col - 1;
       let count = 1;
 
       while (li < pieceMatrix.length && lj >= 0 && pieceMatrix[li][lj] == pieceMatrix[row][col]) {
+        validP.push("r" + String(li) + "c" + String(lj));
         li += 1;
         lj -= 1;
         count += 1;
         if (count >= 5) {
+          winP = winP.concat(validP);
           return true;
         }
       }
@@ -573,10 +536,12 @@
       let rj = col + 1;
 
       while (ri >= 0 && rj < pieceMatrix.length && pieceMatrix[ri][rj] == pieceMatrix[row][col]) {
+        validP.push("r" + String(ri) + "c" + String(rj));
         ri -= 1;
         rj += 1;
         count += 1;
         if (count >= 5) {
+          winP = winP.concat(validP);
           return true;
         }
       }
@@ -586,22 +551,28 @@
 
 
     function checkV(row, col) {
+      //Checks to see if there are 5 in a row vertically
+      let validP = [("r" + String(row) + "c" + String(col)),];
       let ui = row + 1;
       let count = 1;
 
       while (ui < pieceMatrix.length && pieceMatrix[ui][col] == pieceMatrix[row][col]) {
+        validP.push("r" + String(ui) + "c" + String(col));
         ui += 1;
         count += 1;
         if (count >= 5) {
+          winP = winP.concat(validP);
           return true;
         }
       }
 
       let di = row - 1;
       while (di >= 0 && pieceMatrix[di][col] == pieceMatrix[row][col]) {
+        validP.push("r" + String(di) + "c" + String(col));
         di -= 1;
         count += 1;
         if (count >= 5) {
+          winP = winP.concat(validP);
           return true;
         }
       }
@@ -609,23 +580,28 @@
     }
 
     function checkH(row, col) {
-
+      //Checks to see if there are 5 in a row horizontally
+      let validP = [("r" + String(row) + "c" + String(col)),];
       let ri = col + 1;
       count = 1;
 
       while (ri < pieceMatrix.length && pieceMatrix[row][ri] == pieceMatrix[row][col]) {
+        validP.push("r" + String(row) + "c" + String(ri));
         ri += 1;
         count += 1;
         if (count >= 5) {
+          winP = winP.concat(validP);
           return true;
         }
       }
 
       let li = col - 1;
       while (li >= 0 && pieceMatrix[row][li] == pieceMatrix[row][col]) {
+        validP.push("r" + String(row) + "c" + String(li));
         li -= 1;
         count += 1;
         if (count >= 5) {
+          winP = winP.concat(validP);
           return true;
         }
       }
@@ -634,6 +610,8 @@
 
 
     function winCheck(row, col) {
+      //Returns true if the game is over (win or tie)
+      //Returns false otherwise
       let res = checkDiagF(row, col);
       let res1 = checkDiagB(row, col);
       let res2 = checkV(row, col);
@@ -642,18 +620,14 @@
       let resetDiv = document.getElementById('reset');
       let winText = document.getElementById('win-text');
       if (res || res1 || res2 || res3) {
-        console.log("WIN");
+        //A player has won the game
+        colorWin();
+        let message = (pieceMatrix[row][col] == 1) ? "Player 1 wins!" : "Player 2 wins!";
+
+        winText.textContent = message;
         displayWin = true;
         winDiv.style.display = 'flex';
-        resetDiv.style.display = 'flex';
-        let message = "wins!";
-        if (pieceMatrix[row][col] == -1) {
-          message = "Player 1 " + message;
-        }
-        else {
-          message = "Player 2 " + message;
-        }
-        winText.textContent = message;
+        resetDiv.style.display = 'flex';  //Display the winner
         return true;
       }
 
@@ -661,9 +635,10 @@
       //there is a draw since the board is now full
       else if (turnCount == 225) {
         displayWin = true;
+        winText.textContent = "It's a draw!";
         winDiv.style.display = 'flex';
         resetDiv.style.display = 'flex';
-        winText.textContent = "It's a draw!";
+        return true;
       }
       return false;
     }
@@ -675,6 +650,8 @@
     function reset() {
       displayWin = false; //don't currently use this variable
       turnCount = 0;
+      watching = false;
+      winP = [];
 
       //Clear all elements related to displaying a win
       let winDiv = document.getElementById('win');
@@ -689,7 +666,7 @@
       dis.style.display = 'none';
 
       //Reset to starting color (black)
-      piece = -1;
+      piece = 1;
 
       let rows = 15;
       let cols = 15;
@@ -704,10 +681,18 @@
       let circle = d3.selectAll("circle")
         .attr("fill", "black")
         .attr("opacity", 0)
+        .attr("stroke-width", 0) //don't have to worry about resetting color since border is 0
+        .style("cursor", "pointer")
         .on("click", appearFunc);
-
     }
 
+    function colorWin() {
+      for (let i = 0; i < winP.length; i++) {
+        d3.selectAll("circle." + winP[i])
+          .attr("stroke-width", 2)
+          .attr("stroke", "yellow");
+      }
+    }
 
   </script>
 </body>
