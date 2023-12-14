@@ -10,7 +10,12 @@ serverPort = 8000
 #TO DO: fix below
 htmlFilePath = "src/gomoku-board.html"
 playersDict = {1: 'p1',2: 'p2', -1: 'p2'} # This should not have -1 , but player 2 start bug
+<<<<<<< HEAD
+# modelPath = "src/BEEFY-11conv-3lin-50Epoch/BEEFY-11conv-3linear_60Epoch-rando.pth"
+modelPath="src/Small-3Conv-1lin/Small-3Conv-1lin.pth"
+=======
 modelPath = "src/200Epoch-7conv-4linear"
+>>>>>>> refs/remotes/origin/main
 
 class MyServer(BaseHTTPRequestHandler):
     def do_GET(self):
